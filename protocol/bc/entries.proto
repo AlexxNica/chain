@@ -1,0 +1,39 @@
+syntax = "proto3";
+option go_package = "bc";
+package chain.protocol.bc;
+
+message AssetAmount {
+  bytes  asset_id = 1;
+  uint64 amount = 2;
+}
+
+message ValueSource {
+  bytes       ref      = 1;
+  AssetAmount value    = 2;
+  uint64      position = 3;
+}
+
+message ValueDestination {
+  bytes       ref      = 1;
+  AssetAmount value    = 2;
+  uint64      position = 3;
+}
+
+message Program {
+  uint64 vm_version = 1;
+  bytes  code       = 2;
+}
+
+message Mux {
+  message Body {
+    repeated ValueSource sources = 1; // issuances, spends, and muxes
+    Program  program             = 2;
+    bytes    ext_hash            = 3;
+  }
+  message Witness {
+    repeated ValueDestination destinations = 1; // outputs, retirements, and muxes
+    repeated bytes            arguments    = 2;
+  }
+  Body    body    = 1;
+  Witness witness = 2;
+}
