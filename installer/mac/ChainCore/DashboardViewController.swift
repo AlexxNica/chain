@@ -82,51 +82,42 @@ class DashboardViewController: NSViewController, WebUIDelegate, WKUIDelegate, WK
     }
 
     func doLoadModernDashboard() {
-        if #available(OSX 10.10, *) {
-            if webView != nil {
-                return
-            }
-            let config = WKWebViewConfiguration()
-            if #available(OSX 10.11, *) {
-                config.websiteDataStore = WKWebsiteDataStore.default()
-                config.applicationNameForUserAgent = userAgent()
-            }
-            let ctrl = WKUserContentController()
-
-            let consoleOverride = "window.console = { }"
-            let userScript = WKUserScript(source: consoleOverride, injectionTime: WKUserScriptInjectionTime.atDocumentStart, forMainFrameOnly: true)
-            ctrl.addUserScript(userScript)
-
-            for name in ["log", "warn", "error", "debug", "info"] {
-                ctrl.add(self, name: name)
-                // Override console.log so we intercept it.
-                let methodOverride = "window.console.\(name) = function(msg) { window.webkit.messageHandlers.\(name).postMessage(msg); };"
-                let userScript = WKUserScript(source: methodOverride, injectionTime: WKUserScriptInjectionTime.atDocumentStart, forMainFrameOnly: true)
-                ctrl.addUserScript(userScript)
-            }
-
-            config.userContentController = ctrl
-            let wv = WKWebView(frame: self.view.bounds, configuration: config)
-            wv.autoresizingMask = [.viewWidthSizable, .viewHeightSizable]
-            wv.translatesAutoresizingMaskIntoConstraints = true
-
-            self.view.addSubview(wv)
-            self.preloadView.isHidden = true
-            wv.uiDelegate = self
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: {
-                wv.load(URLRequest(url: ChainCore.shared.dashboardURL))
-            })
-
-            //            // Debug:
-            //            DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: {
-            //                wv.evaluateJavaScript("console.error('test from js bridge')", completionHandler: { (result, err) in
-            //                    //                    NSLog("Executed JS: %@ %@", "\(result)", "\(err)")
-            //                })
-            //            })
-
-            webView = wv
+        if webView != nil {
+            return
         }
+        let config = WKWebViewConfiguration()
+        if #available(OSX 10.11, *) {
+            config.websiteDataStore = WKWebsiteDataStore.default()
+            config.applicationNameForUserAgent = userAgent()
+        }
+        let ctrl = WKUserContentController()
+
+        let consoleOverride = "window.console = { }"
+        let userScript = WKUserScript(source: consoleOverride, injectionTime: WKUserScriptInjectionTime.atDocumentStart, forMainFrameOnly: true)
+        ctrl.addUserScript(userScript)
+
+        for name in ["log", "warn", "error", "debug", "info"] {
+            ctrl.add(self, name: name)
+            // Override console.log so we intercept it.
+            let methodOverride = "window.console.\(name) = function(msg) { window.webkit.messageHandlers.\(name).postMessage(msg); };"
+            let userScript = WKUserScript(source: methodOverride, injectionTime: WKUserScriptInjectionTime.atDocumentStart, forMainFrameOnly: true)
+            ctrl.addUserScript(userScript)
+        }
+
+        config.userContentController = ctrl
+        let wv = WKWebView(frame: self.view.bounds, configuration: config)
+        wv.autoresizingMask = [.viewWidthSizable, .viewHeightSizable]
+        wv.translatesAutoresizingMaskIntoConstraints = true
+
+        self.view.addSubview(wv)
+        self.preloadView.isHidden = true
+        wv.uiDelegate = self
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: {
+            wv.load(URLRequest(url: ChainCore.shared.dashboardURL))
+        })
+
+        webView = wv
     }
 
     func doLoadLegacyDashboard() {
@@ -240,4 +231,3 @@ class DashboardViewController: NSViewController, WebUIDelegate, WKUIDelegate, WK
     }
 
 }
-
